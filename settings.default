@@ -20,10 +20,10 @@ INET_LIB=$INET_PATH
 INET_NED=$INET_PATH
 
 # The git tag for the version to be used
-INET_VERSION="v3.6.3"
+INET_VERSION="v3.99.3"
 
 OMNET_INI_FILE=simulations/omnetpp-herald-epidemic.ini
-OMNET_OUTPUT_DIR=/home/kiri/data/out/
+OMNET_OUTPUT_DIR=./out/
 
 # Directory to store the simulation results. As default, a generic directory for
 # each simulation run is created. It can be overwritten using the following
