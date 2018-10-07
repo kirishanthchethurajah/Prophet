@@ -22,15 +22,15 @@ void ProphetRoutingLayer::initialize(int stage)
         //Parameters for Prophet Protocol
         pEncounterMax = par("pEncounterMax");
         pEncounterFirst = par("pEncounterFirst");
-	pFirstThreshold = par("pFirstThreshold");
-	alpha = par("alpha");
-	beta = par("beta");
-	gamma = par("gamma");
-	delta = par("delta");
-	lastTimeAged = 0.0;
+        pFirstThreshold = par("pFirstThreshold");
+        alpha = par("alpha");
+        beta = par("beta");
+        gamma = par("gamma");
+        delta = par("delta");
+        lastTimeAged = 0.0;
         standardTimeInterval = par("standardTimeInterval");
 
-	} else if (stage == 1) {
+    } else if (stage == 1) {
     } else if (stage == 2) {
     } else {
         EV_FATAL << PROPHETROUTINGLAYER_SIMMODULEINFO << "Something is radically wrong in initialisation \n";
@@ -50,25 +50,25 @@ void ProphetRoutingLayer::handleMessage(cMessage *msg)
 
     numEventsHandled++;
 
-	  // age the data in the cache only if needed (e.g. a message arrived)
+      // age the data in the cache only if needed (e.g. a message arrived)
     if (useTTL)
-    	ageDataInCache();
+        ageDataInCache();
 
     // self messages
     if (msg->isSelfMessage()) {
-	EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << "Received unexpected self message" << "\n";
-	delete msg;
+    EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << "Received unexpected self message" << "\n";
+    delete msg;
     // messages from other layers
     } else {
 
-	// get message arrival gate name
+    // get message arrival gate name
         gate = msg->getArrivalGate();
         strcpy(gateName, gate->getName());
 
         // app registration message arrived from the upper layer (app layer)
         if (strstr(gateName, "upperLayerIn") != NULL && dynamic_cast<KRegisterAppMsg*>(msg) != NULL) {
 
-	    handleAppRegistrationMsg(msg);
+        handleAppRegistrationMsg(msg);
         // data message arrived from the upper layer (app layer)
         } else if (strstr(gateName, "upperLayerIn") != NULL && dynamic_cast<KDataMsg*>(msg) != NULL) {
 
@@ -137,6 +137,7 @@ void ProphetRoutingLayer::ageDataInCache()
 
 }
 
+// Find the time unit and equate in the aging equation for all the node's in the DP table
 int ProphetRoutingLayer::agingDP()
 {
     // Calculate DP values due to Aging
@@ -146,24 +147,24 @@ int ProphetRoutingLayer::agingDP()
     DeliveryPredictability *deliveryPredictability;
     list<DeliveryPredictability*>::iterator iteratorDeliveryPredictability;
     iteratorDeliveryPredictability = dpList.begin();
-	
+    
     if(currentTime < lastTimeAged)
     {
-	cout<<"Error: something went wrong \n";
-	exit(1);
+    cout<<"Error: something went wrong \n";
+    exit(1);
     }
-	
-    double kappa = (currentTime - lastTimeAged) / standardTimeInterval ;
+    
+    double timeUnit = (currentTime - lastTimeAged) / standardTimeInterval ;
             
     while (iteratorDeliveryPredictability != dpList.end()) {
         deliveryPredictability = *iteratorDeliveryPredictability;
-	if(deliveryPredictability->nodeMACAddress != ownMACAddress){      
+    if(deliveryPredictability->nodeMACAddress != ownMACAddress){      
             double dP = deliveryPredictability->nodeDP;
-	    dP = dP * pow(gamma, kappa);
-	    deliveryPredictability->nodeDP = dP;
-	    if(dP >=  pFirstThreshold){
-	    	count ++;
-	    }
+        dP = dP * pow(gamma, timeUnit);
+        deliveryPredictability->nodeDP = dP;
+        if(dP >=  pFirstThreshold){
+            count ++;
+        }
         } 
         iteratorDeliveryPredictability++;
     }
@@ -204,7 +205,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
     KDataMsg *omnetDataMsg = dynamic_cast<KDataMsg*>(msg);
 
     if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<UI>!<DM>!<" << omnetDataMsg->getSourceAddress() << ">!<"
-        << omnetDataMsg->getDestinationAddress() << ">!<" << omnetDataMsg->getFinalDestinationNodeAddress() << ">!<" << omnetDataMsg->getDataName() << ">!<" << 	omnetDataMsg->getGoodnessValue() << ">!<" << omnetDataMsg->getByteLength() << ">!<" << omnetDataMsg->getHopsTravelled() << "\n";}
+        << omnetDataMsg->getDestinationAddress() << ">!<" << omnetDataMsg->getFinalDestinationNodeAddress() << ">!<" << omnetDataMsg->getDataName() << ">!<" <<     omnetDataMsg->getGoodnessValue() << ">!<" << omnetDataMsg->getByteLength() << ">!<" << omnetDataMsg->getHopsTravelled() << "\n";}
 
 
     CacheEntry *cacheEntry;
@@ -215,7 +216,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
         cacheEntry = *iteratorCache;
         //Restrict non -destination oriented message as well as the duplicate message
         if (cacheEntry->dataName == omnetDataMsg->getDataName()){ 
-		    found = TRUE;
+            found = TRUE;
             break;
         }
 
@@ -240,7 +241,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
             currentCacheSize -= removingCacheEntry->realPayloadSize;
             cacheList.remove(removingCacheEntry);
 
-			//if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CR>!<"
+            //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CR>!<"
                 //<< removingCacheEntry->dataName << ">!<" << removingCacheEntry->realPayloadSize << ">!<0>!<"
                 //<< currentCacheSize << ">!<0>!<0>!<" << removingCacheEntry->hopsTravelled << "\n";}
 
@@ -276,7 +277,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
 
     cacheEntry->lastAccessedTime = simTime().dbl();
 
-	
+    
     delete msg;
 }
 
@@ -285,7 +286,7 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
     KNeighbourListMsg *neighListMsg = dynamic_cast<KNeighbourListMsg*>(msg);
 
     //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<NM>!<NC>!<" <<
-			//			neighListMsg->getNeighbourNameListArraySize() << ">!<CS>!<"
+            //            neighListMsg->getNeighbourNameListArraySize() << ">!<CS>!<"
         //                    << cacheList.size() << "\n";}
 
      // if no neighbours or cache is empty, just return
@@ -353,31 +354,28 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
             syncedNeighbour->neighbourSyncEndTime = 0.0;
             //Calculate Encounter Interval for DPT calculation
             if(syncedNeighbour->lastSyncTime != 0.0){
-		int numPreviousEncounter = syncedNeighbour->numPreviousEncounter;
-		double totalAEI = syncedNeighbour->totalAEI;
-		double aEIValue = syncedNeighbour->aEIValue;
-		double lastSyncTime = syncedNeighbour->lastSyncTime;
-		numPreviousEncounter ++;
-                //History of Encounter check
-		totalAEI += simTime().dbl() - lastSyncTime;
-		aEIValue = totalAEI / numPreviousEncounter;
-		// Update the existing value
-		syncedNeighbour->numPreviousEncounter = numPreviousEncounter;
+                int numPreviousEncounter = syncedNeighbour->numPreviousEncounter;
+                double totalAEI = syncedNeighbour->totalAEI;
+                double aEIValue = syncedNeighbour->aEIValue;
+                double lastSyncTime = syncedNeighbour->lastSyncTime;
+                numPreviousEncounter ++;
+                totalAEI += simTime().dbl() - lastSyncTime;
+                aEIValue = totalAEI / numPreviousEncounter;
+                // Update the existing value
+                syncedNeighbour->numPreviousEncounter = numPreviousEncounter;
+                syncedNeighbour->totalAEI = totalAEI ;
+                syncedNeighbour->aEIValue = aEIValue  ;
+        }
+                
+        
+        // send DPtable request message
+        DPtableRequestMsg *dptableRequestMsg = new DPtableRequestMsg();
+        dptableRequestMsg->setSourceAddress(ownMACAddress.c_str());
+        dptableRequestMsg->setDestinationAddress(nodeMACAddress.c_str());
+        send(dptableRequestMsg, "lowerLayerOut");
 
-		syncedNeighbour->totalAEI = totalAEI ;
-		syncedNeighbour->aEIValue = aEIValue  ;
-
-		}
-				
-		
-            // send DPtable request message
-            DPtableRequestMsg *dptableRequestMsg = new DPtableRequestMsg();
-	dptableRequestMsg->setSourceAddress(ownMACAddress.c_str());
-	dptableRequestMsg->setDestinationAddress(nodeMACAddress.c_str());
-	send(dptableRequestMsg, "lowerLayerOut");
-
-	if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DPR>!<"
-		  << dptableRequestMsg->getDestinationAddress()<< "\n";}
+        if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DPR>!<"
+         << dptableRequestMsg->getDestinationAddress()<< "\n";}
 
         }
 
@@ -417,201 +415,189 @@ ProphetRoutingLayer::SyncedNeighbour* ProphetRoutingLayer::getSyncingNeighbourIn
 
     if (!found) {
 
-    //Create an Entry in DPT table
-	updateNeighbourSyncStarted(nodeMACAddress,ownMACAddress);
-	// if sync entry not there, create an entry with initial values
-    syncedNeighbour = new SyncedNeighbour;
-	syncedNeighbour->nodeMACAddress = nodeMACAddress.c_str();
-    syncedNeighbour->syncCoolOffEndTime = 0.0;
-    syncedNeighbour->randomBackoffStarted = FALSE;
-    syncedNeighbour->randomBackoffEndTime = 0.0;
-    syncedNeighbour->neighbourSyncing = FALSE;
-    syncedNeighbour->neighbourSyncEndTime = 0.0;
-    syncedNeighbour->nodeConsidered = FALSE;
-	syncedNeighbour->numPreviousEncounter = 0;
-	syncedNeighbour->totalAEI = 0.0;
-	syncedNeighbour->aEIValue = 0.0;
-	syncedNeighbour->lastSyncTime = 0.0;
-	syncedNeighbourList.push_back(syncedNeighbour);
+        //Create an Entry in DPT table
+        updateNeighbourSyncStarted(nodeMACAddress,ownMACAddress);
+        // if sync entry not there, create an entry with initial values
+        syncedNeighbour = new SyncedNeighbour;
+        syncedNeighbour->nodeMACAddress = nodeMACAddress.c_str();
+        syncedNeighbour->syncCoolOffEndTime = 0.0;
+        syncedNeighbour->randomBackoffStarted = FALSE;
+        syncedNeighbour->randomBackoffEndTime = 0.0;
+        syncedNeighbour->neighbourSyncing = FALSE;
+        syncedNeighbour->neighbourSyncEndTime = 0.0;
+        syncedNeighbour->nodeConsidered = FALSE;
+        syncedNeighbour->numPreviousEncounter = 0;
+        syncedNeighbour->totalAEI = 0.0;
+        syncedNeighbour->aEIValue = 0.0;
+        syncedNeighbour->lastSyncTime = 0.0;
+        syncedNeighbourList.push_back(syncedNeighbour);
     }
 
     return syncedNeighbour;
 }
 
+// Receieve the request and age the DP values for the current time
+// Send the DP table list with values greater than the threashold value [to reduce the size]
 void ProphetRoutingLayer::handleDPTableRequestFromLowerLayer(cMessage *msg)
 {
 
-	DPtableRequestMsg *dptableRequestMsg = dynamic_cast<DPtableRequestMsg*>(msg);
+    DPtableRequestMsg *dptableRequestMsg = dynamic_cast<DPtableRequestMsg*>(msg);
 
 
 
-	//if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LI>!<DPRM>!<" << dptableRequestMsg->getSourceAddress() << ">!<"
+    //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LI>!<DPRM>!<" << dptableRequestMsg->getSourceAddress() << ">!<"
       //          << dptableRequestMsg->getByteLength() << "\n";}
 
-	//cout<< " Entering handleDPTableRequestFromLowerLayer " <<"\n";
-	//cout<< "Dp list size :" << dpList.size()<<"\n";
-	int listSize = agingDP();
-    //cout<< "sending Dp list size :" << listSize <<"\n";
-	DPtableDataMsg *dptableDataMsg = new DPtableDataMsg();
-	dptableDataMsg->setDpListArraySize(listSize);
+    int listSize = agingDP();
+    DPtableDataMsg *dptableDataMsg = new DPtableDataMsg();
+    dptableDataMsg->setDpListArraySize(listSize);
     list<DeliveryPredictability*>::iterator iteratorDeliveryPredictability;
     iteratorDeliveryPredictability = dpList.begin();
     int i=0;
-	while (iteratorDeliveryPredictability != dpList.end()) {
-  		DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability;
-	    // Send only Dp values greater than the first threashold value to reduce the data load
-    	if(deliveryPredictability->nodeDP >=  pFirstThreshold)
-	    {
-			if (i < listSize)
-			    {
-        	    delivPredictability temp;
-			    temp.nodeMACAddress= deliveryPredictability->nodeMACAddress;
-			    temp.nodeDP = deliveryPredictability->nodeDP;
-				dptableDataMsg->setDpList(i,temp);
-		        i++;
-                }		
-		}
-		iteratorDeliveryPredictability++;
+    while (iteratorDeliveryPredictability != dpList.end()) {
+          DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability;
+        // Send only Dp values greater than the first threashold value to reduce the data load
+        if(deliveryPredictability->nodeDP >=  pFirstThreshold)
+        {
+            if (i < listSize)
+                {
+                delivPredictability temp;
+                temp.nodeMACAddress= deliveryPredictability->nodeMACAddress;
+                temp.nodeDP = deliveryPredictability->nodeDP;
+                dptableDataMsg->setDpList(i,temp);
+                i++;
+                }        
+        }
+        iteratorDeliveryPredictability++;
 
-  	}
+      }
 
-	dptableDataMsg->setSourceAddress(dptableRequestMsg->getDestinationAddress());
-	dptableDataMsg->setDestinationAddress(dptableRequestMsg->getSourceAddress());
+    dptableDataMsg->setSourceAddress(dptableRequestMsg->getDestinationAddress());
+    dptableDataMsg->setDestinationAddress(dptableRequestMsg->getSourceAddress());
 
-	if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DPTM>!<" << dptableRequestMsg->getSourceAddress() << ">!<"
+    if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DPTM>!<" << dptableRequestMsg->getSourceAddress() << ">!<"
                 << dpList.size() << ">!<" << listSize << "\n";}
-	send(dptableDataMsg, "lowerLayerOut");
-	delete msg;
+    send(dptableDataMsg, "lowerLayerOut");
+    delete msg;
 
 }
 
+// store the received DP list 
 void ProphetRoutingLayer::handleDPTableDataFromLowerLayer(cMessage *msg)
 {
     DPtableDataMsg *dptableDataMsg  = dynamic_cast<DPtableDataMsg*>(msg);
     int i= 0;
-    //cout<<"Entering Handle Dpt table data from lower layer :\n";
-    //cout <<"DP list size: "<< dptableDataMsg->getDpListArraySize() <<"\n";
     while (i< dptableDataMsg->getDpListArraySize())
     {
-  	    delivPredictability temp;
+        delivPredictability temp;
         DeliveryPredictability *deliveryPredictability = new DeliveryPredictability;
         temp =  dptableDataMsg->getDpList(i);
-      	deliveryPredictability->nodeMACAddress = temp.nodeMACAddress.c_str();
-      	deliveryPredictability->nodeDP = temp.nodeDP ;
-	      dpListReceived.push_back(deliveryPredictability);
-	      i++;
+        deliveryPredictability->nodeMACAddress = temp.nodeMACAddress.c_str();
+        deliveryPredictability->nodeDP = temp.nodeDP ;
+        dpListReceived.push_back(deliveryPredictability);
+        i++;
     }
 
-	//if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LI>!<DPTM>!<" << dptableDataMsg->getSourceAddress() << ">!<"
+    //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LI>!<DPTM>!<" << dptableDataMsg->getSourceAddress() << ">!<"
       //          << dptableDataMsg->getDpListArraySize() << ">!<" << "\n";}
 
     updateDPT(dptableDataMsg->getSourceAddress());
 
-	  delete msg;
+    delete msg;
 }
 
+// Iterate the cache and send all the messages whose final destination nodes are in the destination node list[better dp value encountered node]
+// Delete the messages whose final destination node name is equal to the encountered node
+// Update the Last synch time value for the encountered node
 void ProphetRoutingLayer::sendDataMsg(vector<string> destinationNodes, string nodeMACAddress)
 {
     
-     CacheEntry *cacheEntry;
+    CacheEntry *cacheEntry;
     list<CacheEntry*>::iterator iteratorCache;
     vector<string> sentdatanamelist;
     iteratorCache = cacheList.begin();
     while (iteratorCache != cacheList.end()) {
         cacheEntry = *iteratorCache;
         if (std::find(destinationNodes.begin(), destinationNodes.end(), cacheEntry->finalDestinationNodeAddress)!=destinationNodes.end())
-  	    {
-	        KDataMsg *dataMsg = new KDataMsg();
+            {
+            KDataMsg *dataMsg = new KDataMsg();
+            dataMsg->setSourceAddress(ownMACAddress.c_str());
+            dataMsg->setDestinationAddress(nodeMACAddress.c_str());
+            dataMsg->setDataName(cacheEntry->dataName.c_str());
+            dataMsg->setDummyPayloadContent(cacheEntry->dummyPayloadContent.c_str());
+            dataMsg->setValidUntilTime(cacheEntry->validUntilTime);
+            dataMsg->setRealPayloadSize(cacheEntry->realPayloadSize);
+            // check KOPSMsg.msg on sizing mssages
+            int realPacketSize = 6 + 6 + 2 + cacheEntry->realPayloadSize + 4 + 6 + 1;
+            dataMsg->setRealPacketSize(realPacketSize);
+            dataMsg->setByteLength(realPacketSize);
+            dataMsg->setOriginatorNodeName(cacheEntry->originatorNodeName.c_str());
+            dataMsg->setDestinationOriented(cacheEntry->destinationOriented);
+            if (cacheEntry->destinationOriented) {
+                dataMsg->setFinalDestinationNodeName(cacheEntry->finalDestinationNodeName.c_str());
+               dataMsg->setFinalDestinationNodeAddress(cacheEntry->finalDestinationNodeAddress.c_str());
+            }
+            dataMsg->setMessageID(cacheEntry->messageID.c_str());
+            dataMsg->setHopCount(cacheEntry->hopCount);
+            dataMsg->setGoodnessValue(cacheEntry->goodnessValue);
+            dataMsg->setHopsTravelled(cacheEntry->hopsTravelled);
 
-		dataMsg->setSourceAddress(ownMACAddress.c_str());
-	 	dataMsg->setDestinationAddress(nodeMACAddress.c_str());
-		dataMsg->setDataName(cacheEntry->dataName.c_str());
-		dataMsg->setDummyPayloadContent(cacheEntry->dummyPayloadContent.c_str());
-		dataMsg->setValidUntilTime(cacheEntry->validUntilTime);
-		dataMsg->setRealPayloadSize(cacheEntry->realPayloadSize);
-		// check KOPSMsg.msg on sizing mssages
-		int realPacketSize = 6 + 6 + 2 + cacheEntry->realPayloadSize + 4 + 6 + 1;
-		dataMsg->setRealPacketSize(realPacketSize);
-		dataMsg->setByteLength(realPacketSize);
-		dataMsg->setOriginatorNodeName(cacheEntry->originatorNodeName.c_str());
-		dataMsg->setDestinationOriented(cacheEntry->destinationOriented);
-		if (cacheEntry->destinationOriented) {
-		    dataMsg->setFinalDestinationNodeName(cacheEntry->finalDestinationNodeName.c_str());
-		    dataMsg->setFinalDestinationNodeAddress(cacheEntry->finalDestinationNodeAddress.c_str());
-		    }
-		dataMsg->setMessageID(cacheEntry->messageID.c_str());
-		dataMsg->setHopCount(cacheEntry->hopCount);
-		dataMsg->setGoodnessValue(cacheEntry->goodnessValue);
-		dataMsg->setHopsTravelled(cacheEntry->hopsTravelled);
-
-		if(cacheEntry->finalDestinationNodeAddress.c_str() == nodeMACAddress)
+            if(cacheEntry->finalDestinationNodeAddress.c_str() == nodeMACAddress)
                 {
-                    sentdatanamelist.push_back(cacheEntry->dataName.c_str());
+                sentdatanamelist.push_back(cacheEntry->dataName.c_str());
                 }
 
-                    //cout<<"data message is about to send\n";
-          	send(dataMsg, "lowerLayerOut");
+                   
+            send(dataMsg, "lowerLayerOut");
 
-		if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DM>!<" << 
-           			  dataMsg->getFinalDestinationNodeAddress() << ">!<"<< dataMsg->getDestinationAddress() << ">!<" 
-                                  << dataMsg->getByteLength() << ">!<" << dataMsg->getDataName() << ">!<" << dataMsg->getHopsTravelled() << "\n";}
-  	    } 
-	    iteratorCache++;
+            if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DM>!<" << 
+                          dataMsg->getFinalDestinationNodeAddress() << ">!<"<< dataMsg->getDestinationAddress() << ">!<" 
+                          << dataMsg->getByteLength() << ">!<" << dataMsg->getDataName() << ">!<" << dataMsg->getHopsTravelled() << "\n";}
+             } 
+        iteratorCache++;
     }    
        
    
-// remove  data items that are sent to the final destination
+   // remove  data items that are sent to the final destination
    bool expiredFound = FALSE;
    for(int i = 0; i < sentdatanamelist.size(); i++) {
-      expiredFound = FALSE;
-      CacheEntry *cacheEntry;
-      list<CacheEntry*>::iterator iteratorCache;
-      iteratorCache = cacheList.begin();
-      while (iteratorCache != cacheList.end()) {
-          cacheEntry = *iteratorCache;
-          if (cacheEntry->dataName.c_str() == sentdatanamelist[i]) {
-              expiredFound = TRUE;
-              break;
-          }
-          iteratorCache++;
-      }
-      if (expiredFound) {
-          currentCacheSize -= cacheEntry->realPayloadSize;
-        cout<<cacheEntry->dataName.c_str()<<"\n";
-        cacheList.remove(cacheEntry);
-
-        delete cacheEntry;
-      }
+       expiredFound = FALSE;
+       CacheEntry *cacheEntry;
+       list<CacheEntry*>::iterator iteratorCache;
+       iteratorCache = cacheList.begin();
+       while (iteratorCache != cacheList.end()) {
+           cacheEntry = *iteratorCache;
+           if (cacheEntry->dataName.c_str() == sentdatanamelist[i]) {
+               expiredFound = TRUE;
+               break;
+           }
+           iteratorCache++;
+       }
+       if (expiredFound) {
+           currentCacheSize -= cacheEntry->realPayloadSize;
+           cout<<cacheEntry->dataName.c_str()<<"\n";
+           cacheList.remove(cacheEntry);
+           delete cacheEntry;
+        }
     }
-  
-
-	//Calculate the last sync time
+    //Calculate the last sync time
     disconnectEncounterInterval(nodeMACAddress);
-
-
 }
 
-
+// When the Encountered node is encountered first set the DP value to zero
 void ProphetRoutingLayer::updateNeighbourSyncStarted(string nodeMACAddress , string ownMACAddress )
 {
 
     // Iniitialisation of  A DPT table
     DeliveryPredictability *deliveryPredictability = new DeliveryPredictability;
-
-    if(nodeMACAddress== ownMACAddress)
-    {
+    if(nodeMACAddress== ownMACAddress){
         deliveryPredictability->nodeDP = 1.0;
-	deliveryPredictability->nodeMACAddress = ownMACAddress;
-	
+        deliveryPredictability->nodeMACAddress = ownMACAddress;
     }else{
         deliveryPredictability->nodeDP = 0.0;
-	deliveryPredictability->nodeMACAddress = nodeMACAddress.c_str();
+        deliveryPredictability->nodeMACAddress = nodeMACAddress.c_str();
     }
-
-
     dpList.push_back(deliveryPredictability);
-
-	
 }
 
 
@@ -634,12 +620,11 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
     if ((omnetDataMsg->getDestinationOriented()
          && strstr(ownMACAddress.c_str(), omnetDataMsg->getFinalDestinationNodeAddress()) != NULL)
          || omnetDataMsg->getHopCount() >= maximumHopCount) {
-     //Messages reached its destination or should be delted as it reaches maximum hop count
+         //Messages reached its destination or should be delted as it reaches maximum hop count
         cacheData = FALSE;
     }
 
     if(cacheData) {
-
         // insert/update cache
         CacheEntry *cacheEntry;
         list<CacheEntry*>::iterator iteratorCache;
@@ -651,8 +636,6 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
                 found = TRUE;
                 break;
             }
-
-
             iteratorCache++;
         }
 
@@ -676,7 +659,7 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
                 currentCacheSize -= removingCacheEntry->realPayloadSize;
                 cacheList.remove(removingCacheEntry);
 
-				if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CR>!<"
+                if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CR>!<"
                     << removingCacheEntry->dataName << ">!<" << removingCacheEntry->realPayloadSize << ">!<0>!<"
                     << currentCacheSize << ">!<0>!<0>!<" << removingCacheEntry->hopsTravelled << "\n";}
                 delete removingCacheEntry;
@@ -697,7 +680,7 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
                 cacheEntry->finalDestinationNodeName = omnetDataMsg->getFinalDestinationNodeName();
                 cacheEntry->finalDestinationNodeAddress = omnetDataMsg->getFinalDestinationNodeAddress();
             }
-			cacheEntry->goodnessValue = omnetDataMsg->getGoodnessValue();
+            cacheEntry->goodnessValue = omnetDataMsg->getGoodnessValue();
             cacheEntry->createdTime = simTime().dbl();
             cacheEntry->updatedTime = simTime().dbl();
 
@@ -706,13 +689,13 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
             currentCacheSize += cacheEntry->realPayloadSize;
 
         }
-		cacheEntry->hopsTravelled = omnetDataMsg->getHopsTravelled();
+        cacheEntry->hopsTravelled = omnetDataMsg->getHopsTravelled();
         cacheEntry->hopCount = omnetDataMsg->getHopCount() ;
         cacheEntry->lastAccessedTime = simTime().dbl();
 
 
 
-		// log cache update or add
+        // log cache update or add
         if (found) {
             if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CU>!<"
                 << omnetDataMsg->getDataName() << ">!<" << omnetDataMsg->getRealPayloadSize() << ">!<0>!<"
@@ -737,11 +720,11 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
         iteratorRegisteredApps++;
     }
     if (found) {
-		//<<"sending the msg to its destination app layer:\n";
+        //<<"sending the msg to its destination app layer:\n";
         send(msg, "upperLayerOut");
 
 
-	if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<UO>!<DM>!<" << omnetDataMsg->getSourceAddress() << ">!<"
+    if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<UO>!<DM>!<" << omnetDataMsg->getSourceAddress() << ">!<"
             << omnetDataMsg->getDestinationAddress() << ">!<" << omnetDataMsg->getDataName() << ">!<" << omnetDataMsg->getGoodnessValue() << ">!<"
             << omnetDataMsg->getByteLength() << ">!<" << omnetDataMsg->getHopsTravelled() << "\n";}
 
@@ -781,14 +764,13 @@ void ProphetRoutingLayer::setSyncingNeighbourInfoForNextRound()
 }
 
 
+// Set the last sync time to measure the DP values in future encounters
 void ProphetRoutingLayer::disconnectEncounterInterval(string nodeMACAddress)
 {
     SyncedNeighbour *syncedNeighbour = getSyncingNeighbourInfo(nodeMACAddress);
     if (syncedNeighbour->nodeMACAddress == nodeMACAddress) {
-	syncedNeighbour->lastSyncTime  = simTime().dbl();
-
-    }
-
+        syncedNeighbour->lastSyncTime  = simTime().dbl();
+     }
 }
 
 
@@ -810,11 +792,14 @@ void ProphetRoutingLayer::setSyncingNeighbourInfoForNoNeighboursOrEmptyCache()
         iteratorSyncedNeighbour++;
     }
 }
-
-
+// 0) Aging the DP table
+// 1) Calculate the DP value of the encountered nodes
+// 2) Calculate the DP value of all other neigboring nodes based on the encountered nodes [Transitivity condition]
+// 3) Compare the calculated DP table with the Node's own table
+// 4) Find the Neighbor's that the encountered node as better DP 
 void ProphetRoutingLayer::updateDPT(string nodeMACAddress)
 {
-    //Step 1: Update the DP values  due to aging
+    //Step 0: Update the DP values  due to aging
     agingDP();
     list<DeliveryPredictability*>::iterator iteratorDeliveryPredictability;
     iteratorDeliveryPredictability = dpList.begin();
@@ -822,52 +807,42 @@ void ProphetRoutingLayer::updateDPT(string nodeMACAddress)
     iteratorDeliveryPredictabilityReceived =dpListReceived.begin();
     vector<string> destinationNodes;
     double encounteredDP = 0.0;
-    // To update the DP of the encountered node
+    //Step 1: To update the DP of the encountered node
     while (iteratorDeliveryPredictability != dpList.end()) {
-    	DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability ;
-    	if(deliveryPredictability->nodeMACAddress == nodeMACAddress){
-
-  	      encounteredDP = deliveryPredictability ->nodeDP;
-               destinationNodes.push_back(nodeMACAddress);
-	      // Condition :first Encounter
-	      if (pEncounterFirst - encounteredDP > pFirstThreshold)
-              { // Step 2: Update the DP of the encountered Node
-
-	           encounteredDP = encounteredDP + ((1- encounteredDP) * pEncounterFirst );
-	           deliveryPredictability->nodeDP = encounteredDP;
-	           
-	           break;
-	              // Condition : Second or further Encounters
-	       }else {// Check whether the Nodes is frequently visiting
-                    
-                   double intvl;
-                   double Ityp;
-              	   SyncedNeighbour *syncedNeighbour = getSyncingNeighbourInfo(nodeMACAddress);
-              	   intvl= syncedNeighbour-> aEIValue ;
-              	   Ityp = simTime().dbl() - syncedNeighbour-> lastSyncTime ;
-		   //Ityp= syncedNeighbour-> aEIValue ;
-              	   //intvl = simTime().dbl() - syncedNeighbour-> lastSyncTime ;
-                   //cout << "check" << intvl <<"::::"<< Ityp << "\n";
-              	   double pFinal = 0.0;
-                   //cout<<intvl - Ityp <<"\n";
-		   if (intvl - Ityp > pFirstThreshold )
- 		   { //Non - Frequent
-        		pFinal = pEncounterMax;
-		    } else {
-		     //Frequent visits so reduce the increment value
-                        
-
-			pFinal = pEncounterMax *(intvl / Ityp);
-		     }
-		     // Step 2: Update the DP of the encountered Node
-                   //encounteredDP = encounteredDP + ((1- delta - encounteredDP) * pFinal );
-		   encounteredDP = encounteredDP + ((1- encounteredDP) * pFinal );
-		   deliveryPredictability->nodeDP = encounteredDP;
-		  
-                   break;
-		}
-    	}
-	iteratorDeliveryPredictability++;
+        DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability ;
+        if(deliveryPredictability->nodeMACAddress == nodeMACAddress){
+            encounteredDP = deliveryPredictability ->nodeDP;
+            destinationNodes.push_back(nodeMACAddress);
+            //step 1 i: Condition :first Encounter
+            if (pEncounterFirst - encounteredDP > pFirstThreshold){ 
+		        //step 1 ii: Update the DP of the encountered Node
+                encounteredDP = encounteredDP + ((1- encounteredDP) * pEncounterFirst );
+                deliveryPredictability->nodeDP = encounteredDP;
+                break;
+            // step 1 i: Condition : Second or further Encounters
+            }else {
+			    // Check whether the Nodes is frequently visiting
+                double intvl;
+                double Ityp;
+                SyncedNeighbour *syncedNeighbour = getSyncingNeighbourInfo(nodeMACAddress);
+                intvl= syncedNeighbour-> aEIValue ;
+                Ityp = simTime().dbl() - syncedNeighbour-> lastSyncTime ;
+                double pFinal = 0.0;
+                if (intvl - Ityp > pFirstThreshold ) {
+			        //Non - Frequent
+                    pFinal = pEncounterMax;
+                } else {
+                    //Frequent visits so reduce the increment value
+                    pFinal = pEncounterMax *(intvl / Ityp);
+                }
+                // Step 1 ii: Update the DP of the encountered Node
+                //encounteredDP = encounteredDP + ((1- delta - encounteredDP) * pFinal );
+                encounteredDP = encounteredDP + ((1- encounteredDP) * pFinal);
+                deliveryPredictability->nodeDP = encounteredDP;
+                break;
+            }
+        }
+    iteratorDeliveryPredictability++;
     }
 
     //Step 3: To update DPT For other Nodes in the neighborlist or DPT table
@@ -875,53 +850,45 @@ void ProphetRoutingLayer::updateDPT(string nodeMACAddress)
     iteratorDeliveryPredictability = dpList.begin();
     while (iteratorDeliveryPredictability != dpList.end()) {
         DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability ;
-	while (iteratorDeliveryPredictabilityReceived != dpListReceived.end()) {
-	    DeliveryPredictability *deliveryPredictabilityReceived = *iteratorDeliveryPredictabilityReceived ;
+        while (iteratorDeliveryPredictabilityReceived != dpListReceived.end()) {
+            DeliveryPredictability *deliveryPredictabilityReceived = *iteratorDeliveryPredictabilityReceived ;
 
-	    if(deliveryPredictability->nodeMACAddress == ownMACAddress)
-	    {
-		// No need to update its own value
-          	break ;
-
-	     }else if(deliveryPredictability->nodeMACAddress == nodeMACAddress){
-
+            if(deliveryPredictability->nodeMACAddress == ownMACAddress){
+                // No need to update its own value
                 break ;
-		// Encountered Node dp's already updated
-	     }else if(deliveryPredictability->nodeMACAddress == deliveryPredictabilityReceived->nodeMACAddress){
-	         // Step 3: Update the DP of the remaining node based on the Transitive Property
-	         double encounteredNeighborDP = deliveryPredictabilityReceived->nodeDP;
-	         double temp;
-      	         temp = encounteredNeighborDP * encounteredDP * beta ;
-		 double ownNeighborDP = deliveryPredictability ->nodeDP;
-                 double diff = temp - ownNeighborDP ;
-                 if (diff > pFirstThreshold)
-	         {
-	             // Update The next Hop address
-      		     // Update the DPT value
-	            
-		     destinationNodes.push_back(deliveryPredictability->nodeMACAddress);
-	             deliveryPredictability ->nodeDP =temp;
-                  }
-    		 break ;
-	     }
-	     iteratorDeliveryPredictabilityReceived++;
-	}
+            }else if(deliveryPredictability->nodeMACAddress == nodeMACAddress){
+                break ;
+                // Encountered Node dp's already updated
+            }else if(deliveryPredictability->nodeMACAddress == deliveryPredictabilityReceived->nodeMACAddress){
+                // Step 3: Update the DP of the remaining node based on the Transitive Property
+                double encounteredNeighborDP = deliveryPredictabilityReceived->nodeDP;
+                double temp;
+                temp = encounteredNeighborDP * encounteredDP * beta ;
+                double ownNeighborDP = deliveryPredictability ->nodeDP;
+                double diff = temp - ownNeighborDP ;
+                if (diff > pFirstThreshold){
+                    // Update The next Hop address
+                    // Update the DPT value
+                    destinationNodes.push_back(deliveryPredictability->nodeMACAddress);
+                    deliveryPredictability ->nodeDP =temp;
+                }
+                break ;
+            }
+            iteratorDeliveryPredictabilityReceived++;
+        }
         iteratorDeliveryPredictability++;
     }
 
-  //Empty the received dplist
-  list<DeliveryPredictability*> dpListReceived;
-  sendDataMsg(destinationNodes, nodeMACAddress);
+    //Empty the received dplist
+    list<DeliveryPredictability*> dpListReceived;
+    sendDataMsg(destinationNodes, nodeMACAddress);
   
 }
 
 void ProphetRoutingLayer::finish()
 {
-
     recordScalar("numEventsHandled", numEventsHandled);
-
-
-	  // clear registered app list
+    // clear registered app list
     while (registeredAppList.size() > 0) {
         list<AppInfo*>::iterator iteratorRegisteredApp = registeredAppList.begin();
         AppInfo *appInfo= *iteratorRegisteredApp;
@@ -946,19 +913,18 @@ void ProphetRoutingLayer::finish()
         delete syncedNeighbour;
     }
 
-
-	  // clear DeliveryPredictability[own] table list
+    // clear DeliveryPredictability[own] table list
     list<DeliveryPredictability*> dpList;
-	  while (dpList.size() > 0) {
+    while (dpList.size() > 0) {
         list<DeliveryPredictability*>::iterator iteratorDeliveryPredictability = dpList.begin();
         DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability;
         dpList.remove(deliveryPredictability);
         delete deliveryPredictability;
     }
 
-	 // clear Received DeliveryPredictabilitytable list
+     // clear Received DeliveryPredictabilitytable list
    list<DeliveryPredictability*> dpListReceived;
-	 while (dpListReceived.size() > 0) {
+   while (dpListReceived.size() > 0) {
        list<DeliveryPredictability*>::iterator iteratorDeliveryPredictability = dpListReceived.begin();
        DeliveryPredictability *deliveryPredictability = *iteratorDeliveryPredictability;
        dpListReceived.remove(deliveryPredictability);
