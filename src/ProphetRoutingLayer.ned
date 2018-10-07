@@ -13,7 +13,7 @@ simple ProphetRoutingLayer like IForwardingLayer
         // size of cache in bytes - zero means unlimited caching
         int maximumCacheSize @unit(byte) = default(5000000 byte);
 
-	// maximum amount of hops to forward for a data
+		// maximum amount of hops to forward for a data
         int maximumHopCount = default(25);
 
         // maximum duration to use when obtaining a random backoff duration
@@ -25,34 +25,34 @@ simple ProphetRoutingLayer like IForwardingLayer
         // logging at layer - 0 = disabled, 1 = enabled
         int logging = default(1);
 		
-	// switch on and off the TTL handling (expensive procedure)
+		// switch on and off the TTL handling (expensive procedure)
         bool useTTL = default(false);
 
         //Parameters specific to Prophet Routing
 
-	//Max limit
-	double pEncounterMax = default(0.7);
+		//Max limit
+		double pEncounterMax = default(0.7);
 
-	//Initial Encounter value
+		//Initial Encounter value
 
-	double pEncounterFirst = default(0.5);
+		double pEncounterFirst = default(0.5);
 
-	//Initial Threshold value
+		//Initial Threshold value
 
-	double pFirstThreshold = default (0.1);
+		double pFirstThreshold = default (0.1);
 
-	double alpha =default(0.5);
+		double alpha =default(0.5);
 
-	//Scaling Constant
-        double beta= default(0.9);
+		//Scaling Constant
+			double beta= default(0.9);
 
-	//Aging Constant
-	double  gamma = default(0.998);
+		//Aging Constant
+		double  gamma = default(0.998);
 
-	double delta = default(0.1);
+		double delta = default(0.1);
 
-	//Standard time between encounter
-	double standardTimeInterval @unit(s) =default(3600s);
+		//Standard time between encounter
+		double standardTimeInterval @unit(s) =default(3600s);
 
 
         // icon used
