@@ -37,6 +37,7 @@ void ProphetRoutingLayer::initialize(int stage)
     }
 }
 
+
 int ProphetRoutingLayer::numInitStages() const
 {
     return 3;
@@ -131,17 +132,15 @@ void ProphetRoutingLayer::ageDataInCache()
             currentCacheSize -= cacheEntry->realPacketSize;
             cacheList.remove(cacheEntry);
             delete cacheEntry;
-
         }
     }
-
 }
+
 
 // Find the time unit and equate in the aging equation for all the node's in the DP table
 int ProphetRoutingLayer::agingDP()
 {
     // Calculate DP values due to Aging
-
     double currentTime = simTime().dbl() ;
     int count = 0;
     DeliveryPredictability *deliveryPredictability;
@@ -150,28 +149,26 @@ int ProphetRoutingLayer::agingDP()
     
     if(currentTime < lastTimeAged)
     {
-    cout<<"Error: something went wrong \n";
+    EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO <<"Error: something went wrong \n";
     exit(1);
     }
     
     double timeUnit = (currentTime - lastTimeAged) / standardTimeInterval ;
-            
     while (iteratorDeliveryPredictability != dpList.end()) {
         deliveryPredictability = *iteratorDeliveryPredictability;
-    if(deliveryPredictability->nodeMACAddress != ownMACAddress){      
+        if(deliveryPredictability->nodeMACAddress != ownMACAddress){      
             double dP = deliveryPredictability->nodeDP;
-        dP = dP * pow(gamma, timeUnit);
-        deliveryPredictability->nodeDP = dP;
-        if(dP >=  pFirstThreshold){
-            count ++;
-        }
+            dP = dP * pow(gamma, timeUnit);
+            deliveryPredictability->nodeDP = dP;
+            if(dP >=  pFirstThreshold){
+                count ++;
+            } 
         } 
         iteratorDeliveryPredictability++;
     }
     lastTimeAged =  currentTime;
     return count;
 }
-
 
 void ProphetRoutingLayer::handleAppRegistrationMsg(cMessage *msg)
 {
@@ -193,11 +190,9 @@ void ProphetRoutingLayer::handleAppRegistrationMsg(cMessage *msg)
         appInfo->appID = nextAppID++;
         appInfo->appName = regAppMsg->getAppName();
         registeredAppList.push_back(appInfo);
-
     }
     appInfo->prefixName = regAppMsg->getPrefixName();
     delete msg;
-
 }
 
 void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
@@ -206,8 +201,6 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
 
     if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<UI>!<DM>!<" << omnetDataMsg->getSourceAddress() << ">!<"
         << omnetDataMsg->getDestinationAddress() << ">!<" << omnetDataMsg->getFinalDestinationNodeAddress() << ">!<" << omnetDataMsg->getDataName() << ">!<" <<     omnetDataMsg->getGoodnessValue() << ">!<" << omnetDataMsg->getByteLength() << ">!<" << omnetDataMsg->getHopsTravelled() << "\n";}
-
-
     CacheEntry *cacheEntry;
     list<CacheEntry*>::iterator iteratorCache;
     int found = FALSE;
@@ -219,7 +212,6 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
             found = TRUE;
             break;
         }
-
         iteratorCache++;
     }
 
@@ -244,9 +236,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
             //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CR>!<"
                 //<< removingCacheEntry->dataName << ">!<" << removingCacheEntry->realPayloadSize << ">!<0>!<"
                 //<< currentCacheSize << ">!<0>!<0>!<" << removingCacheEntry->hopsTravelled << "\n";}
-
             delete removingCacheEntry;
-
         }
 
         cacheEntry = new CacheEntry;
@@ -274,10 +264,7 @@ void ProphetRoutingLayer::handleDataMsgFromUpperLayer(cMessage *msg)
         currentCacheSize += cacheEntry->realPayloadSize;
 
     }
-
     cacheEntry->lastAccessedTime = simTime().dbl();
-
-    
     delete msg;
 }
 
@@ -285,11 +272,7 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
 {
     KNeighbourListMsg *neighListMsg = dynamic_cast<KNeighbourListMsg*>(msg);
 
-    //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<NM>!<NC>!<" <<
-            //            neighListMsg->getNeighbourNameListArraySize() << ">!<CS>!<"
-        //                    << cacheList.size() << "\n";}
-
-     // if no neighbours or cache is empty, just return
+    // if no neighbours or cache is empty, just return
     if (neighListMsg->getNeighbourNameListArraySize() == 0 || cacheList.size() == 0) {
 
         // setup sync neighbour list for the next time - only if there were some changes
@@ -365,8 +348,7 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
                 syncedNeighbour->numPreviousEncounter = numPreviousEncounter;
                 syncedNeighbour->totalAEI = totalAEI ;
                 syncedNeighbour->aEIValue = aEIValue  ;
-        }
-                
+            }
         
         // send DPtable request message
         DPtableRequestMsg *dptableRequestMsg = new DPtableRequestMsg();
@@ -376,8 +358,7 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
 
         if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DPR>!<"
          << dptableRequestMsg->getDestinationAddress()<< "\n";}
-
-        }
+       }
 
         i++;
     }
@@ -394,7 +375,6 @@ void ProphetRoutingLayer::handleNeighbourListMsgFromLowerLayer(cMessage *msg)
 
 }
 
-
 ProphetRoutingLayer::SyncedNeighbour* ProphetRoutingLayer::getSyncingNeighbourInfo(string nodeMACAddress)
 {
     // check if sync entry is there
@@ -405,16 +385,13 @@ ProphetRoutingLayer::SyncedNeighbour* ProphetRoutingLayer::getSyncingNeighbourIn
     while (iteratorSyncedNeighbour != syncedNeighbourList.end()) {
         syncedNeighbour = *iteratorSyncedNeighbour;
         if (syncedNeighbour->nodeMACAddress == nodeMACAddress) {
-
             found = TRUE;
             break;
         }
-
         iteratorSyncedNeighbour++;
     }
 
     if (!found) {
-
         //Create an Entry in DPT table
         updateNeighbourSyncStarted(nodeMACAddress,ownMACAddress);
         // if sync entry not there, create an entry with initial values
@@ -440,13 +417,9 @@ ProphetRoutingLayer::SyncedNeighbour* ProphetRoutingLayer::getSyncingNeighbourIn
 // Send the DP table list with values greater than the threashold value [to reduce the size]
 void ProphetRoutingLayer::handleDPTableRequestFromLowerLayer(cMessage *msg)
 {
-
     DPtableRequestMsg *dptableRequestMsg = dynamic_cast<DPtableRequestMsg*>(msg);
-
-
-
     //if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LI>!<DPRM>!<" << dptableRequestMsg->getSourceAddress() << ">!<"
-      //          << dptableRequestMsg->getByteLength() << "\n";}
+                 // << dptableRequestMsg->getByteLength() << "\n";}
 
     int listSize = agingDP();
     DPtableDataMsg *dptableDataMsg = new DPtableDataMsg();
@@ -547,7 +520,6 @@ void ProphetRoutingLayer::sendDataMsg(vector<string> destinationNodes, string no
                 sentdatanamelist.push_back(cacheEntry->dataName.c_str());
                 }
 
-                   
             send(dataMsg, "lowerLayerOut");
 
             if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<LO>!<DM>!<" << 
@@ -556,8 +528,7 @@ void ProphetRoutingLayer::sendDataMsg(vector<string> destinationNodes, string no
              } 
         iteratorCache++;
     }    
-       
-   
+    
    // remove  data items that are sent to the final destination
    bool expiredFound = FALSE;
    for(int i = 0; i < sentdatanamelist.size(); i++) {
@@ -599,8 +570,6 @@ void ProphetRoutingLayer::updateNeighbourSyncStarted(string nodeMACAddress , str
     }
     dpList.push_back(deliveryPredictability);
 }
-
-
 
 void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
 {
@@ -693,8 +662,6 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
         cacheEntry->hopCount = omnetDataMsg->getHopCount() ;
         cacheEntry->lastAccessedTime = simTime().dbl();
 
-
-
         // log cache update or add
         if (found) {
             if (logging) {EV_INFO << PROPHETROUTINGLAYER_SIMMODULEINFO << ">!<" << ownMACAddress << ">!<CU>!<"
@@ -734,8 +701,6 @@ void ProphetRoutingLayer::handleDataMsgFromLowerLayer(cMessage *msg)
     }
 }
 
-
-
 void ProphetRoutingLayer::setSyncingNeighbourInfoForNextRound()
 {
     // loop thru syncing neighbor list and set for next round
@@ -754,15 +719,11 @@ void ProphetRoutingLayer::setSyncingNeighbourInfoForNextRound()
             syncedNeighbour->neighbourSyncing = FALSE;
             syncedNeighbour->neighbourSyncEndTime = 0.0;
         }
-
         // setup for next time
         syncedNeighbour->nodeConsidered = FALSE;
-
-
         iteratorSyncedNeighbour++;
     }
 }
-
 
 // Set the last sync time to measure the DP values in future encounters
 void ProphetRoutingLayer::disconnectEncounterInterval(string nodeMACAddress)
@@ -772,8 +733,6 @@ void ProphetRoutingLayer::disconnectEncounterInterval(string nodeMACAddress)
         syncedNeighbour->lastSyncTime  = simTime().dbl();
      }
 }
-
-
 
 void ProphetRoutingLayer::setSyncingNeighbourInfoForNoNeighboursOrEmptyCache()
 {
@@ -792,6 +751,7 @@ void ProphetRoutingLayer::setSyncingNeighbourInfoForNoNeighboursOrEmptyCache()
         iteratorSyncedNeighbour++;
     }
 }
+
 // 0) Aging the DP table
 // 1) Calculate the DP value of the encountered nodes
 // 2) Calculate the DP value of all other neigboring nodes based on the encountered nodes [Transitivity condition]
