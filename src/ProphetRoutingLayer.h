@@ -37,10 +37,8 @@ class ProphetRoutingLayer: public cSimpleModule
         double maximumRandomBackoffDuration;
         int logging;
 		bool useTTL;
-	    
-		int numEventsHandled;
-		
-        int currentCacheSize;
+	    int numEventsHandled;
+		int currentCacheSize;
 		double pEncounterFirst;
     	double pFirstThreshold;
         double pEncounterMax;
