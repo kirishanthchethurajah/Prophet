@@ -36,11 +36,11 @@ class ProphetRoutingLayer: public cSimpleModule
         int maximumHopCount;
         double maximumRandomBackoffDuration;
         int logging;
-		bool useTTL;
-	    int numEventsHandled;
-		int currentCacheSize;
-		double pEncounterFirst;
-    	double pFirstThreshold;
+        bool useTTL;
+        int numEventsHandled;
+        int currentCacheSize;
+        double pEncounterFirst;
+        double pFirstThreshold;
         double pEncounterMax;
         double beta;
         double gamma;
@@ -60,18 +60,18 @@ class ProphetRoutingLayer: public cSimpleModule
         struct CacheEntry {
             string messageID;
             int hopCount;
-			string dataName;
+            string dataName;
             int realPayloadSize;
             string dummyPayloadContent;
-			double validUntilTime;
-			int realPacketSize;
-			bool destinationOriented;
+            double validUntilTime;
+            int realPacketSize;
+            bool destinationOriented;
             string originatorNodeName;
             string finalDestinationNodeName;
-	    	string finalDestinationNodeAddress;
+            string finalDestinationNodeAddress;
             int goodnessValue;
-	    	int hopsTravelled;
-			double createdTime;
+            int hopsTravelled;
+            double createdTime;
             double updatedTime;
             double lastAccessedTime;
 
@@ -91,8 +91,8 @@ class ProphetRoutingLayer: public cSimpleModule
 
             int numPreviousEncounter;
             double lastSyncTime;
-	    	double totalAEI;
-	    	double aEIValue;
+            double totalAEI;
+            double aEIValue;
 
         };
 
@@ -102,39 +102,39 @@ class ProphetRoutingLayer: public cSimpleModule
         };
 
 
-	
+    
         list<AppInfo*> registeredAppList;
         list<CacheEntry*> cacheList;
         list<SyncedNeighbour*> syncedNeighbourList;
-		list<DeliveryPredictability*> dpList;
-		list<DeliveryPredictability*> dpListReceived;
-		bool syncedNeighbourListIHasChanged;
+        list<DeliveryPredictability*> dpList;
+        list<DeliveryPredictability*> dpListReceived;
+        bool syncedNeighbourListIHasChanged;
 
 
         cMessage *ageDataTimeoutEvent;
 
-		void ageDataInCache();
+        void ageDataInCache();
         void handleAppRegistrationMsg(cMessage *msg);
         void handleDataMsgFromUpperLayer(cMessage *msg);
         void handleNeighbourListMsgFromLowerLayer(cMessage *msg);
         void handleDataMsgFromLowerLayer(cMessage *msg);
         void sendDataMsg(vector<string> destinationNodes, string nodeMACAddress);
-		//Receives the DPT table request and send its DP table
-		void handleDPTableRequestFromLowerLayer(cMessage *msg);
-		// Receives the Encountered Node's DPT
+        //Receives the DPT table request and send its DP table
+        void handleDPTableRequestFromLowerLayer(cMessage *msg);
+        // Receives the Encountered Node's DPT
         void handleDPTableDataFromLowerLayer(cMessage *msg);
 
-		//TO set Last synch time
-		void disconnectEncounterInterval(string nodeMACAddress);
-		//To update DP value based on Aging
-		int agingDP();
-		//Updates its own Table with the Received Table
-		void updateDPT(string nodeMACAddress);
-	
-		SyncedNeighbour* getSyncingNeighbourInfo(string nodeMACAddress);
-		void setSyncingNeighbourInfoForNextRound();
-		void setSyncingNeighbourInfoForNoNeighboursOrEmptyCache();
-		void updateNeighbourSyncStarted(string nodeMACAddress , string ownMACAddress );
+        //TO set Last synch time
+        void disconnectEncounterInterval(string nodeMACAddress);
+        //To update DP value based on Aging
+        int agingDP();
+        //Updates its own Table with the Received Table
+        void updateDPT(string nodeMACAddress);
+    
+        SyncedNeighbour* getSyncingNeighbourInfo(string nodeMACAddress);
+        void setSyncingNeighbourInfoForNextRound();
+        void setSyncingNeighbourInfoForNoNeighboursOrEmptyCache();
+        void updateNeighbourSyncStarted(string nodeMACAddress , string ownMACAddress );
 
 };
 #define PROPHETROUTINGLAYER_SIMMODULEINFO         ">!<" << simTime() << ">!<" << getParentModule()->getFullName()
