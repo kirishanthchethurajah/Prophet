@@ -297,6 +297,10 @@ listed below.
    - `KEpidemicRoutingLayer` - Implements the epidemic routing algorithm as described
      in the publication [Epidemic Routing for Partially-Connected Ad Hoc Networks](http://issg.cs.duke.edu/epidemic/epidemic.pdf)
      by A. Vahdat and D. Becker
+    - `PRoPHETRoutingLayer` - Implements the PRoPHET routing algorithm as described
+     in the publication [The Evolution of a DTN Routing Protocol – PRoPHETv2](https://core.ac.uk/download/pdf/11435236.pdf)
+     by A. Lindgren, A. Doria, E. Davies, and S. Grasic
+     
 
 3. Link Adaptation Layer - Tasked with converting packets sent by the Opportunistic
    Networking Layer to the specific link technology used (at Link Layer). Currently
